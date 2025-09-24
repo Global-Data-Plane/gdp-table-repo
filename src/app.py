@@ -3,7 +3,7 @@ import datetime
 import logging
 import os
 from src import permissions, gdp_storage
-from src.config import GOOGLE_PROJECT, GDP_PERMISSIONS_DATABASE, BUCKET_NAME, CLOUD_ENVIRONMENT, FLASK_SECRET_KEY
+from src.config import GOOGLE_PROJECT, GDP_PERMISSIONS_DATABASE, GDP_PERMISSIONS_TABLE, BUCKET_NAME, CLOUD_ENVIRONMENT, FLASK_SECRET_KEY
 from src.gdp_table_manager import GDPTableManager
 from src.routes.sdtp_routes import sdtp_bp
 from src.routes.repo import repo_bp
@@ -14,7 +14,7 @@ def _create_managers():
   if CLOUD_ENVIRONMENT == 'Google':
     return {
       "storage_manager": gdp_storage.GDPGoogleStorageManager(BUCKET_NAME),
-      "permissions_manager": permissions.DatastoreManager(GOOGLE_PROJECT, GDP_PERMISSIONS_DATABASE)
+      "permissions_manager": permissions.DatastoreManager(GOOGLE_PROJECT, GDP_PERMISSIONS_DATABASE, GDP_PERMISSIONS_TABLE)
     }
   else:
       return {
@@ -30,7 +30,8 @@ class FlushFileHandler(logging.FileHandler):
     self.flush()
 
 def create_app():
-  app = Flask(__name__)
+  app = Flask(__name__, template_folder='../templates', static_folder='../static')
+
   managers = _create_managers()
 
   dt = datetime.datetime.now()

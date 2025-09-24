@@ -179,7 +179,7 @@ class GDPTableManager:
     '''
     Store a table in the repository and update permissions.
     Parameters:
-      key: the GDPTable to store
+      key: the table  to store (owner/name.sdml)
       table_data: a JSON string or dict (table data)
       share_set: set of users to share the table with (includes owner automatically)
     '''

@@ -151,31 +151,39 @@ class DatastoreManager(PermissionManager):
   This is designed to be used only from the top level of the service, 
   which should check for all errors -- this does no error-checking.
   '''
-  def __init__(self, project, database):
+  def __init__(self, project, database, permissions_table):
     '''
     Parameters:
       project: the google project
       database: the database used to store objects
-      namespace: the namespace for objects
+      permissions_table: the kind for objects
     '''
     self.project = project
     self.database = database
     self.datastore_client = datastore.Client(project=project, database=database)
+    self.kind = permissions_table
 
   def _put(self, key, perm_record):
-    self.datastore_client.put(key, perm_record)
+    db_key = self.datastore_client.key(self.kind, key)
+    entity = datastore.Entity(key=db_key)
+    entity.update(perm_record)
+    self.datastore_client.put(entity)
+
 
   def _get(self, key):
-    return self.datastore_client.get(key)
+    db_key =  self.datastore_client.key(self.kind, key)
+    return self.datastore_client.get(db_key)
   
   def _delete(self, key: str) -> None:
     """Delete the permissions record for a given path."""
-    self.datastore_client.delete(key)
+    db_key =  self.datastore_client.key(self.kind, key)
+    self.datastore_client.delete(db_key)
 
   def all_keys(self) -> List:
-    query = self.datastore_client.query(kind="key") # Need to set the kind from the end
+    query = self.datastore_client.query(kind=self.kind) # Need to set the kind from the end
     query.keys_only()
-    return list(query.fetch())
+    result =  list(query.fetch())
+    return [entry.key.name for entry in result]
 
 class  InMemoryPermissionsManager(PermissionManager):
   def __init__(self):
