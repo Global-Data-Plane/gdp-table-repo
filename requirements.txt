@@ -1,0 +1,10 @@
+Flask==3.0.3
+Werkzeug
+google-cloud-storage
+google-cloud-core
+google-cloud-datastore
+sdtp>=0.2.5
+jupyterhub
+requests
+gunicorn
+user-agents

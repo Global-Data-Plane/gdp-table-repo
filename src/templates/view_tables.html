@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Your Tables{% endblock %}
+
+{% block content %}
+<h2>Tables You Own</h2>
+{% if owned %}
+  <ul>
+    {% for table in owned %}
+      <li>
+        <strong>{{ table.table }}</strong>
+        [
+          <a href="{{ table.detail }}">Detail</a> |
+          <a href="{{ table.download }}">Download</a> |
+          <a href="{{ table.remotespec }}">RemoteSpec</a> |
+          <a href="{{ table.share }}">Share</a> |
+          <a href="{{ table.delete }}">Delete</a>
+        ]
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>You do not own any tables.</p>
+{% endif %}
+
+<h2>Tables Shared With You</h2>
+{% if other %}
+  <ul>
+    {% for table in other %}
+      <li>
+        <strong>{{ table.table }}</strong>
+        [
+          <a href="{{ table.detail }}">Detail</a> |
+          <a href="{{ table.download }}">Download</a> |
+          <a href="{{ table.remotespec }}">Remote Spec</a>
+        ]
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>No tables have been shared with you yet.</p>
+{% endif %}
+{% endblock %}

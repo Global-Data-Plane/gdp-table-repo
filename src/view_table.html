@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Data Plane Table {{ table_name }} {% endblock %}
+{% block head %}
+    {{ super() }}
+    <style type="text/css">
+        .type { color: #336699; font-family: monospace}
+    </style>
+{% endblock %}
+{% block content %}
+
+  <h1>Data Plane Table<span style = "display: block;"></span>{{ table_name }}<span style = "display: block;"></span> </h1>
+  <table style="border: 1px solid blue;">
+    <tr><th>Column Name</th><th>Column Type</th></tr>
+    
+    {% for column in schema %}
+      <tr style="border: 1px solid blue;">
+        <td style="border: 1px solid blue;">{{ column.name }} </td>
+        <td style="border: 1px solid blue;">{{ column.type }} </td>
+      </tr>
+    {% endfor %}
+  </table>
+
+  <table style="border: 1px solid blue;">
+    <thead>
+      <tr>
+        {% for column in schema %}
+          <th> {{column.name}} </th>
+        {% endfor  %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          {% for elt in row  %}
+            <td>{{ elt }}</td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+    
+    
+  </table>
+  
+  
+{% endblock %}

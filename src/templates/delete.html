@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Table: {{ table_name }}{% endblock %}
+
+{% block content %}
+<h2>Delete Table: {{ table_name }}</h2>
+<p>Are you sure you want to <strong>delete</strong> this table? This action cannot be undone.</p>
+
+<form method="POST" action="{{ delete_completion_url }}">
+  <button type="submit" name="confirm" value="yes">Yes, delete</button>
+  <a href="{{ url_for('ui.ui_view_tables') }}">Cancel</a>
+</form>
+{% endblock %}

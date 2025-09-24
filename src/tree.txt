@@ -1,0 +1,19 @@
+gdp_app/                   # (project root folder - name as you like)
+│
+├── app.py                 # Main Flask app, registers blueprints, runs the server
+├── auth_helpers.py        # All authentication (decorators, helpers, config)
+├── permissions.py         # Permissions manager class (what you just refactored)
+├── gdp_storage.py         # Storage manager class
+├── gdp_table_manager.py   # Table manager class
+│
+├── routes/                # All route blueprints (separate files for each area)
+│   ├── tables.py          # All /table routes (upload, download, share, etc)
+│   └── health.py          # Healthcheck/simple API routes (optional)
+│
+├── templates/             # Jinja2 HTML templates (if you use them)
+│   └── ...html            # (upload form, download page, etc.)
+│
+├── static/                # JS/CSS/images (if you need any)
+│
+├── requirements.txt       # Dependencies (Flask, google-cloud, etc)
+└── README.md              # Project overview, setup instructions, etc

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}View Table: {{ table_name }}{% endblock %}
+
+{% block content %}
+<h2>Table: {{ table_name }}</h2>
+
+<h3>Schema</h3>
+<table>
+  <tr>
+    <th>Name</th><th>Type</th>
+  </tr>
+  {% for col in schema %}
+    <tr>
+    
+      <td>{{ col.name }}</td><td>{{ col.type }}</td>
+    
+    </tr>
+  {% endfor %}
+</table>
+
+<h3>Sample Rows</h3>
+<table>
+  <tr>
+    {% for col in schema %}
+      <th>{{ col.name }}</th>
+    {% endfor %}
+  </tr>
+  {% for row in rows %}
+    <tr>
+      {% for cell in row %}
+        <td>
+          {%- if cell == '...' -%}
+            ...
+          {%- else -%}
+            {{ cell }}
+          {%- endif -%}
+        </td>
+      {% endfor %}
+    </tr>
+  {% endfor %}
+</table>
+
+<h3>Actions</h3>
+<ul>
+  <li><a href="{{ links.download }}">Download Table</a></li>
+  <li><a href="{{ links.remotespec }}">Download Remote Spec</a></li>
+  {% if links.share %}
+    <li><a href="{{ links.share }}">Share Table</a></li>
+  {% endif %}
+  {% if links.delete %}
+    <li><a href="{{ links.delete }}">Delete Table</a></li>
+  {% endif %}
+</ul>
+
+<a href="{{ url_for('ui.ui_view_tables') }}">Back to Tables</a>
+{% endblock %}

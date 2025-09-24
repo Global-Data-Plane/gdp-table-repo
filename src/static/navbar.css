@@ -1,0 +1,102 @@
+/* Navbar styles */
+.navbar {
+    background-color: #002676;
+    padding: 1.1rem; /* Increased padding for top and bottom */
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    transition: box-shadow 0.3s ease-in-out, background-color 0.3s ease;
+    overflow: hidden; /* Prevent scrolling on the navbar */
+}
+
+.navbar:hover {
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
+    background-color: #002676;
+}
+
+/* Navigation list styles */
+.navList {
+    list-style: none;
+    display: flex;
+    justify-content: space-between; /* Distribute buttons evenly */
+    margin: 0;
+    padding: 0;
+    flex-wrap: nowrap; /* Prevent wrapping */
+    overflow: hidden; /* Prevent horizontal scrolling */
+}
+
+.navList li {
+    margin: 0 5px; /* Reduced margin */
+}
+
+.navList li a {
+    color: white;
+    text-decoration: none;
+    font-size: 1.2rem;
+    font-weight: 600;
+    padding: 12px 24px;
+    border-radius: 30px;
+    background-color: transparent;
+    border: 2px solid transparent;
+    transition: all 0.3s ease, transform 0.3s ease;
+    position: relative;
+    display: inline-block;
+    text-align: center;
+    line-height: 1.4;
+    word-wrap: break-word;
+    flex-grow: 1; /* Allow buttons to grow and shrink */
+    flex-shrink: 1; /* Allow buttons to shrink if needed */
+    min-width: 90px; /* Minimum width for buttons */
+    box-sizing: border-box; /* Prevent padding from affecting width */
+}
+
+.navList li a:hover {
+    background-color: #FDB515;
+    color: #002676;
+    border-color: #FDB515;
+    transform: scale(1.1);
+}
+
+.navList li a.active {
+    background-color: #002676;
+    color: #FDB515;
+    border-color: #002676;
+    font-weight: 700;
+    transform: scale(1.05);
+}
+
+.navList li a.active::before {
+    width: 100%;
+    left: 0;
+}
+
+/* Smooth transition for navbar items when hovered or active */
+.navList li a:hover,
+.navList li a.active {
+    transition: transform 0.3s ease, background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Media Queries for Responsiveness */
+
+/* For small screens (mobile) */
+@media (max-width: 768px) {
+    .navList li a {
+        font-size: 1rem; /* Slightly smaller font on smaller screens */
+        padding: 10px 20px;
+        min-width: 80px; /* Smaller min-width for mobile screens */
+    }
+}
+
+/* For extra-small screens (mobile portrait) */
+@media (max-width: 480px) {
+    .navList {
+        justify-content: flex-start; /* Align items to the left on very small screens */
+    }
+
+    .navList li a {
+        font-size: 0.9rem; /* Even smaller font size */
+        padding: 8px 16px; /* Adjust padding */
+        min-width: 60px; /* Allow more space for small screens */
+    }
+}

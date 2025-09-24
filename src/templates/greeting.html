@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}The Galyleo Data Platform{% endblock %}
+{% block head %}
+    {{ super() }}
+    <style type="text/css">
+        .important { color: #336699; }
+    </style>
+{% endblock %}
+{% block content %}
+    <h1> Using the Global Data Plane Table Services  Platform</h1>
+    <p>The Galyleo Data Platform is primarily designed for use with API access, not browser access.  This UI is designed for debugging/explanatory purposes.</p>
+    <p>To access hosted data, use one of the supported routes below with any standard HTTP request library; e.g. requests in Python, fetch in JavaScript, or with an 
+      executable such as wget or cURL..</p>
+    <p>
+      Data access in the The GDP Data  Services Platform is based on the Simple Data Transfer Protocol.  The full documentation on the protocol is in <a href="https://global-data-plane.github.io/sdtp/" target="_blank">SDTP Documentation</a>
+    </p>
+    <p>
+      Jupyter Hub users can upload new tables and dashboards to the platform.  The tables must be in <a href="https://global-data-plane.github.io/sdtp/sdml_reference/" target="_blank">Simple Data Markup Language</a> format.  At the moment, RowTables and 
+      RemoteTables are supported.  
+    </p>
+    
+    <h1> Supported API Methods</h1>
+    <table>
+      <tr>
+        <th>Route</th><th>Method</th><th>Parameters</th><th>Description</th>
+      </tr>
+      {% for route in routes %}
+          <tr>
+            {% for target in ['route', 'method', 'parameters', 'description'] %}
+              <td>{{ route[target] }}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+    </table>
+    <!---
+    <h1>Supported UI Methods</h1>
+      <ul>
+        {% for route in additional_routes %}
+          <li> {{ route}} </li>
+        {% endfor %}
+      </ul>
+    -->
+{% endblock %}
+

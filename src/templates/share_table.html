@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Share Table: {{ table_name }}{% endblock %}
+
+{% block content %}
+<h2>Share Table: {{ table_name }}</h2>
+
+<form method="POST" action="{{ share_action_url }}" autocomplete="off" onsubmit="syncShareList()">
+  <h3>Currently Shared With:</h3>
+  <ul id="share-list"></ul>
+
+  <h3>Add Email to Share With:</h3>
+  <input type="email" id="share-input" name="share_target" placeholder="Add email address" autocomplete="off">
+  <button type="button" onclick="addShare()">Add</button>
+  <input type="hidden" name="share_list" id="share-list-hidden">
+
+  <h3>Special Sharing</h3>
+  <label>
+    <input type="checkbox" name="hub_shared" value="true" {% if hub_shared %}checked{% endif %}>
+    Shared with Hub
+  </label>
+  <br>
+  <label>
+    <input type="checkbox" name="public_shared" value="true" {% if public_shared %}checked{% endif %}>
+    Public
+  </label>
+
+  <br><br>
+  <button type="submit" name="save" value="save">Save Changes</button>
+  <a href="{{ back_url }}">Cancel</a>
+</form>
+
+<script>
+  // Linter ignore: Jinja2 `tojson` is safe and required here
+let shareList = {{ share_list|tojson }};
+function renderShareList() {
+  const ul = document.getElementById('share-list');
+  ul.innerHTML = '';
+  shareList.forEach(email => {
+    const li = document.createElement('li');
+    li.textContent = email + ' ';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = 'Remove';
+    btn.onclick = () => { 
+      shareList = shareList.filter(e => e !== email); 
+      renderShareList(); 
+    };
+    li.appendChild(btn);
+    ul.appendChild(li);
+  });
+  // Sync to hidden field for submission
+  document.getElementById('share-list-hidden').value = JSON.stringify(shareList);
+}
+function validateEmail(email) {
+  return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
+}
+function addShare() {
+  const input = document.getElementById('share-input');
+  const email = input.value.trim();
+  if (email && validateEmail(email) && !shareList.includes(email)) {
+    shareList.push(email);
+    renderShareList();
+    input.value = '';
+  } else {
+    alert('Enter a valid, unique email.');
+  }
+}
+function syncShareList() {
+  // Ensure latest shareList is submitted
+  document.getElementById('share-list-hidden').value = JSON.stringify(shareList);
+}
+document.addEventListener('DOMContentLoaded', renderShareList);
+</script>
+{% endblock %}

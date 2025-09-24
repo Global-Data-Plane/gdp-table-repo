@@ -1,0 +1,10 @@
+# SDTP Methods and Parameters
+| URL           | Method  | Parameters            |  Result               |         Errors                 |
+|---------------|---------|-----------------------|-----------------------|-----------------------|
+| /get_tables   | GET     |                       | dict of table schemas to which the user has  access |
+| /get_table_names | GET  |                       | list of table names to which the user has access |
+| /get_table_schema | GET | table                 | schema of the requested table as a list of dicts | table parameter missing, table not found, user doesn't have access |
+| /get_range_spec | GET | table, column               |  a list of length 2 (min_val, max_val) | table parameter missing, table not found, column parameter missing, column not in table, user doesn't have access |
+| /get_all_values | GET | table, column               |  a list of all the distinct values of the column| table parameter missing, table not found, column parameter missing, column not in table, user doesn't have access |
+| /get_column | GET | table, column               |  The column as a list | table parameter missing, table not found, column parameter missing, column not in table, user doesn't have access |
+| /get_filtered_rows | POST (JSON body) | table, filter_spec (optional), columns (optional) format (optional)  |  the rows of the table which match the spec, or all rows if the spec is missing, in the selected format (list, dict, sdml).  If SDML is chosen, the result is a RowTable as a dictionary; if dict is chosen, a list of dicts is returned; if list is chosen or there is no format parameter, a list of lists of values is returned | table parameter missing, table not found,  column not in table if columns parameter there, bad format if format parameter there, bad filter_spec if filter_spec there, user doesn't have access |

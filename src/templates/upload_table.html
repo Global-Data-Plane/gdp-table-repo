@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Uploader{% endblock %}
+{% block head %}
+    {{ super() }}
+    <style type="text/css">
+        .important { color: #336699; }
+    </style>
+{% endblock %}
+{% block content %}
+
+   {% if email is defined %}
+    <h1>Upload a New Global Data Plane Table</h1>
+    <p>
+        Choose a <a href="https://global-data-plane.github.io/sdtp/sdml_reference/" target="_blank">Simple Data Markup Language (SDML)</a> file to upload to the table repo.<br>
+        The table named "foo.sdml" will be available under {{ email }}/foo.sdml.<br>
+        <span style="color: #d00;">Note: This will overwrite any tables of that name!</span>
+    </p>
+    <form action="{{ upload_url }}" method="post" enctype="multipart/form-data">
+        <label for="table_name">Table Name:</label>
+        <label for="table_file">Choose File:</label>
+        <input type="file" name="table_file" id="table_file" accept=".sdml" required/>
+        <input type="text" name="table_name" id="table_name" required placeholder="e.g. foo.sdml" pattern=".*\.sdml$">
+        <span style="font-size:smaller; color:#888;">Must end with <code>.sdml</code></span>
+
+        <input type="submit" value="Upload">
+        <a href="{{ url_for('ui.ui_view_tables') }}">Cancel</a>
+    </form>
+   {% endif %}
+   <script>
+        document.getElementById('table_file').addEventListener('change', function() {
+            var fileInput = this;
+            var nameInput = document.getElementById('table_name');
+            if (fileInput.files.length > 0 && !nameInput.value) {
+                nameInput.value = fileInput.files[0].name;
+            }
+        });
+</script>
+{% endblock %}
