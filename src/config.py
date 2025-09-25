@@ -12,9 +12,14 @@ GOOGLE_PROJECT = os.environ.get('GOOGLE_PROJECT','')
 BUCKET_NAME = os.environ.get('BUCKET_NAME','')
 JUPYTER_HUB_API_TOKEN = os.environ.get('JUPYTER_HUB_API_TOKEN','')
 GDP_HOST = os.environ.get("GDP_HOST", "http://localhost")
-GOOGLE_APPLICATION_CREDENTIALS = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')\
+GOOGLE_APPLICATION_CREDENTIALS = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
 # if GOOGLE_APPLICATION_CREDENTIALS is None or not os.path.exists(GOOGLE_APPLICATION_CREDENTIALS):
 #     print('Error!  GOOGLE_APPLICATION_CREDENTIALS is not set or does not exist')
 #     exit(1)
 CLOUD_ENVIRONMENT = os.getenv("CLOUD_ENVIRONMENT", "MEMORY")
+#--- Flask Settings ----
 FLASK_SECRET_KEY = os.environ.get('FLASK_SECRET_KEY', 'super-secret-key')
+
+FLASK_STATIC_ASSET_DIR = os.environ.get("FLASK_STATIC_ASSET_DIR", "../static")
+FLASK_JINJA_TEMPLATE_DIR = os.environ.get("FLASK_JINJA_TEMPLATE_DIR", "../templates")
+FLASK_STATIC_URL = os.environ.get("FLASK_STATIC_URL", "/static")

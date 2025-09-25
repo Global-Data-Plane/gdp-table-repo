@@ -15,6 +15,6 @@ def oauth_callback():
       return "Forbidden", 403
   token = auth.token_for_code(code)
   session["token"] = token
-  next_url = auth.get_next_url(cookie_state) or GDP_ROOT_URL
+  next_url = auth.get_next_url(cookie_state)
   response = make_response(redirect(next_url))
   return response

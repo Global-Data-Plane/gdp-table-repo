@@ -103,6 +103,10 @@ def _gen_navbar(active, email = None):
   result  = [gen_link(link, active) for link in links]
   return result
 
+@ui_bp.route('/')
+def root():
+    return 'OK', 200
+
 @ui_bp.route('/ui/')
 @authenticated
 def greeting(user):
