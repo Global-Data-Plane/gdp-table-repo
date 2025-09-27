@@ -3,7 +3,7 @@ import logging
 import os
 import sys
 from src import permissions, gdp_storage
-from src.config import GOOGLE_PROJECT, GDP_PERMISSIONS_DATABASE, GDP_PERMISSIONS_TABLE, BUCKET_NAME, CLOUD_ENVIRONMENT, FLASK_SECRET_KEY, FLASK_JINJA_TEMPLATE_DIR, FLASK_STATIC_ASSET_DIR, FLASK_STATIC_URL
+from src.config import GOOGLE_PROJECT, GDP_PERMISSIONS_DATABASE, GDP_PERMISSIONS_TABLE, BUCKET_NAME, STORAGE_ENVIRONMENT, DATABASE_ENVIRONMENT,  SQLITE_DATABASE_PATH, FLASK_SECRET_KEY, FLASK_JINJA_TEMPLATE_DIR, FLASK_STATIC_ASSET_DIR, FLASK_STATIC_URL
 from src.gdp_table_manager import GDPTableManager
 from src.routes.sdtp_routes import sdtp_bp
 from src.routes.repo import repo_bp
@@ -12,16 +12,21 @@ from src.routes.debug import debug_bp
 from src.auth_helpers import auth_bp
 
 def _create_managers():
-  if CLOUD_ENVIRONMENT == 'Google':
-    return {
-      "storage_manager": gdp_storage.GDPGoogleStorageManager(BUCKET_NAME),
-      "permissions_manager": permissions.DatastoreManager(GOOGLE_PROJECT, GDP_PERMISSIONS_DATABASE, GDP_PERMISSIONS_TABLE)
-    }
+  result = {}
+  if STORAGE_ENVIRONMENT == 'Google':
+    result["storage_manager"] = gdp_storage.GDPGoogleStorageManager(BUCKET_NAME)
   else:
-      return {
-        "storage_manager": gdp_storage.InMemoryStorageManager(),
-        "permissions_manager": permissions.InMemoryPermissionsManager()
-      }
+    result["storage_manager"] =  gdp_storage.InMemoryStorageManager()
+  if DATABASE_ENVIRONMENT == 'Google':
+    result["permissions_manager"] = permissions.DatastoreManager(GOOGLE_PROJECT, GDP_PERMISSIONS_DATABASE, GDP_PERMISSIONS_TABLE)
+  elif DATABASE_ENVIRONMENT == 'SQLite':
+    result["permissions_manager"] = permissions.SQLitePermissionManager(SQLITE_DATABASE_PATH)
+  elif DATABASE_ENVIRONMENT == 'BUCKET':
+    result["permissions_manager"] = permissions.CachedBucketPermissionManager(BUCKET_NAME)
+  else: 
+    result["permissions_manager"] =  permissions.InMemoryPermissionsManager()
+  return result
+    
       
 
 def create_app():

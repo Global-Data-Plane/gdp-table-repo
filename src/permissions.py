@@ -1,4 +1,8 @@
 from google.cloud import datastore
+import sqlite3
+import json
+from google.cloud import storage
+
 
 PUBLIC = 'PUBLIC'  # Access is open to everyone if this permission is set
 HUB = 'HUB'        # Access is open to all hub users if this permission is set
@@ -184,8 +188,93 @@ class DatastoreManager(PermissionManager):
     query.keys_only()
     result =  list(query.fetch())
     return [entry.key.name for entry in result]
+  
+class SQLitePermissionManager(PermissionManager):
+  '''
+  SQLite3 Permissions Manager.  There is one table with two fields, key and a JSONified PermissionsRecord
+  '''
+  def __init__(self, db_path: str):
+    self.db_path = db_path
+    self._init_db()
+
+  def _init_db(self):
+    '''
+    Ensure the path exists, updating if it does not
+    '''
+    with sqlite3.connect(self.db_path) as conn:
+      conn.execute('''
+        CREATE TABLE IF NOT EXISTS permissions (
+          key TEXT PRIMARY KEY,
+          value TEXT NOT NULL
+        )
+      ''')
+
+  def _put(self, key: str, perm_record: PermissionRecord):
+    value = json.dumps(perm_record, indent=2)
+    with sqlite3.connect(self.db_path) as conn:
+      conn.execute(
+        'REPLACE INTO permissions (key, value) VALUES (?, ?)',
+        (key, value)
+      )
+
+  def _get(self, key: str) -> Optional[PermissionRecord]:
+    with sqlite3.connect(self.db_path) as conn:
+      cur = conn.execute(
+        'SELECT value FROM permissions WHERE key = ?', (key,))
+      row = cur.fetchone()
+      if row is None:
+        return None
+      return json.loads(row[0])
+
+  def _delete(self, key: str):
+    with sqlite3.connect(self.db_path) as conn:
+      conn.execute(
+        'DELETE FROM permissions WHERE key = ?', (key,))
+
+  def all_keys(self) -> List[str]:
+    with sqlite3.connect(self.db_path) as conn:
+      cur = conn.execute('SELECT key FROM permissions')
+      return [row[0] for row in cur.fetchall()]
+
+
+class CachedBucketPermissionManager(PermissionManager):
+  def __init__(self, bucket_name: str):
+    self.bucket_name = bucket_name
+    self.client = storage.Client()
+    self.bucket = self.client.bucket(bucket_name)
+    self.records = {}
+    self._load_all()
+
+  def _perm_path(self, key: str) -> str:
+    return f"{key}.perm"
+
+  def _load_all(self):
+    for blob in self.client.list_blobs(self.bucket_name):
+      if blob.name.endswith('.perm'):
+        key = blob.name[:-5]
+        data = blob.download_as_text()
+        self.records[key] = json.loads(data)
+
+  def _get(self, key: str) -> Optional[PermissionRecord]:
+    return self.records.get(key)
+
+  def _put(self, key: str, perm_record: PermissionRecord) -> None:
+    blob = self.bucket.blob(self._perm_path(key))
+    blob.upload_from_string(json.dumps(perm_record, indent=2), content_type='application/json')
+    self.records[key] = perm_record
+
+  def _delete(self, key: str) -> None:
+    blob = self.bucket.blob(self._perm_path(key))
+    blob.delete()
+    self.records.pop(key, None)
+
+  def all_keys(self) -> List[str]:
+    return list(self.records.keys())
 
 class  InMemoryPermissionsManager(PermissionManager):
+  '''
+  InMemory Permissions Manager, for testing
+  '''
   def __init__(self):
     self.records = {}
 
