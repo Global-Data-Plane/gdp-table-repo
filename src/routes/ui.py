@@ -4,7 +4,7 @@ import os
 import json
 from flask import Blueprint, render_template, request, redirect, flash, current_app, abort, jsonify, url_for
 from src.auth_helpers import _get_email, authenticated
-from src.gdp_table_manager import GDPNotFoundException, GDPNotOwnerException, GDPNotPermittedException
+from src.gdp_table_manager import GDPNotFoundException, GDPNotOwnerException, GDPNotPermittedException, owner
 
 ui_bp = Blueprint('ui', __name__, url_prefix='/services/gdp')
 
@@ -105,6 +105,10 @@ def _gen_navbar(active, email = None):
 
 @ui_bp.route('/')
 def root():
+    user_agent = request.user_agent
+
+    if user_agent.string.startswith('Mozilla'): #browser
+        return redirect(url_for('ui.greeting'))
     return 'OK', 200
 
 @ui_bp.route('/ui/')
@@ -149,9 +153,10 @@ def ui_view_tables(user):
     # TODO: render tables.html, fetch tables for user
     email = _get_email(user)
     manager = current_app.table_manager  # type: ignore[attr-defined]
+    print(f'Showing tables for {email}')
     tables = manager.all_user_tables(email, email is not None)
     def owned(table):
-       return email is not None and manager.permissions_manager.get_owner(table) == email
+       return email is not None and owner(table) == email
     
     
     owned_tables = [table for table in tables if owned(table)] 
@@ -273,6 +278,7 @@ def share_table(user, name):
             table_name = table_name,
             hub_shared = 'HUB' in user_list,
             public_shared = 'PUBLIC' in user_list,
+            back_url = url_for('ui.table_detail', user=user, owner=email, name=name),
             share_action_url=url_for('ui.share_table_post', owner=email, name=name),
             email=email, uuid=str(uuid.uuid4()),
             
@@ -396,7 +402,7 @@ def upload_table(user):
         key = f'{email}/{table_name}'
         # You might want to validate table_name, check for collisions, etc.
         # Save the file (parse as SDML if needed), set permissions, etc.
-        manager.publish_table(key, email, sdml_str)
+        manager.publish_table(key, sdml_str)
         flash('Table uploaded successfully!')
         return redirect(url_for('ui.ui_view_tables'))
     return render_template(

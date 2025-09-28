@@ -1,8 +1,34 @@
 from typing import Any, Optional, List, Dict
+import sys
+from uuid import uuid4
 from google.cloud import storage
 import json
-import re
 from abc import ABC, abstractmethod
+
+from typing import Optional
+from datetime import datetime
+
+class ObjectMeta:
+    def __init__(
+        self,
+        etag: str,
+        last_modified: datetime,
+        size: int,
+        content_type: Optional[str] = None,
+        version_id: Optional[str] = None
+    ):
+        self.etag = etag
+        self.last_modified = last_modified
+        self.size = size
+        self.content_type = content_type
+        self.version_id = version_id
+
+    def __repr__(self):
+        return (
+            f"<BlobMeta etag={self.etag} last_modified={self.last_modified} "
+            f"size={self.size} content_type={self.content_type} version_id={self.version_id}>"
+        )
+
 
 class GDPStorageManager(ABC):
   '''
@@ -12,6 +38,21 @@ class GDPStorageManager(ABC):
 
   def __init__(self):
     pass
+
+  @abstractmethod
+  def key_exists(self, key: str) -> bool:
+    '''
+    Returns true iff an object exists under key key
+    '''
+
+  @abstractmethod
+  def get_meta(self, key: str) -> Optional[ObjectMeta]:
+    '''
+    Reads the metadata of the object at the specified key (path).
+    Returns an ObjectMeta or  None if not found.
+    '''
+    raise NotImplementedError()
+  
 
   @abstractmethod
   def get_object(self, key:str) -> Optional[Any]:
@@ -42,30 +83,24 @@ class GDPStorageManager(ABC):
     '''
     raise NotImplementedError()
   
-  def all_keys_matching_pattern(self, pattern: Optional[str] = None) -> List[str]:
+  def all_keys_matching(self, prefix: Optional[str] = None, suffix: Optional[str] = None) -> List[str]:
     '''
     Returns a list of all keys in the bucket matching the optional regex pattern.
     If no pattern is given, returns all  keys.
     '''
     keys = self._all_keys()
-    if pattern is None:
-      return keys
-    regex = re.compile(pattern)
-    return [k for k in keys if regex.search(k)]
+    if prefix is not None:
+      keys = [key for key in keys if key.startswith(prefix)]
+    if suffix is not None:
+      keys = [key for key in keys if key.endswith(suffix)]
+    return keys
   
-  
-  def clean_objects(self, pattern: str) -> None:
-    '''
-    Deletes all blobs whose keys match the given regex pattern.
-    '''
-    for key in self.all_keys_matching_pattern(pattern):
-      self.delete_object(key)
 
   def clean_all(self) -> None:
     '''
     Deletes *all* blobs in the bucket. USE WITH CAUTION.
     '''
-    for key in self.all_keys_matching_pattern():
+    for key in self.all_keys_matching():
       self.delete_object(key)
 
 class GDPGoogleStorageManager(GDPStorageManager):
@@ -79,6 +114,29 @@ class GDPGoogleStorageManager(GDPStorageManager):
     self.client = storage.Client()
     self.bucket = self.client.bucket(bucket_name)
 
+  def key_exists(self, key: str) -> bool:
+    blob = self.bucket.blob(key)
+    return  blob.exists()
+
+  def get_meta(self, key) -> Optional[ObjectMeta]:
+    '''
+    Get the metadata associated with a key.  Reads the blob and then returns the 
+    metadata object assocated with it
+    '''
+    blob = self.bucket.blob(key)
+    if not blob.exists():
+      return None
+    # `blob` is a google.cloud.storage.Blob object (after get_blob or list_blobs)
+    if blob is  None:
+      return None
+    return ObjectMeta(
+        etag=blob.etag if blob.etag else '',
+        last_modified=blob.updated if blob.updated else datetime.now(),
+        size=blob.size if blob.size is not None else 0,
+        content_type=blob.content_type,
+        version_id=getattr(blob, 'generation', None)
+    )
+  
   def get_object(self, key: str) -> Optional[Any]:
     '''
     Reads the object at the specified key (path) in the GCS bucket.
@@ -108,8 +166,8 @@ class GDPGoogleStorageManager(GDPStorageManager):
     '''
     Deletes the object at key (path) in the bucket.
     '''
-    blob = self.bucket.blob(key)
-    blob.delete()
+    self.bucket.delete_blob(key)
+      
 
   def _all_keys(self,) -> List[str]:
     '''
@@ -126,34 +184,62 @@ class InMemoryStorageManager(GDPStorageManager):
   All keys are GCS paths (e.g., 'project/table.sdml').
   '''
   def __init__(self):
-    self.tables = {}
+    self.objects = {}
+    self.meta:Dict[str, ObjectMeta] = {}
+
+  def key_exists(self, key):
+    return key in self.objects.keys()
+  
+  def get_meta(self, key):
+    if self.key_exists(key):
+      return self.meta[key]
 
   def get_object(self, key: str) -> Optional[str]:
     '''
     Reads the object at the specified key (path).
     Returns a JSON obejct
     '''
-    return self.tables.get(key)
+    return self.objects.get(key)
 
-  def put_object(self, key: str, object_data: str) -> None:
+  def put_object(self, key: str, object_data) -> None:
     '''
     Stores the given object_data (dict or string) under key.
     '''
-    self.tables[key] = object_data
+    self.objects[key] = object_data
+    object_size = sys.getsizeof(object_data)
+    version = str(uuid4())
+    if key in self.meta.keys():
+      meta = self.meta[key]
+      meta.etag = version
+      meta.version_id = version
+      meta.last_modified = datetime.now()
+      meta.content_type = 'application/dict'
+      meta.size = object_size
+    else:
+      self.meta[key] = ObjectMeta(
+        etag=version,
+        last_modified=datetime.now(),
+        size=object_size,
+        content_type='application/dict',
+        version_id=version
+      )
+
 
   def delete_object(self, key: str) -> None:
     '''
     Deletes the object at key (path).
     '''
-    if key in self.tables:
-      del self.tables[key]
+    if key in self.objects:
+      del self.objects[key]
+    if key in self.meta:
+      del self.meta[key]
     
 
   def _all_keys(self) -> List[str]:
     '''
     Returns a list of all  keys of stored objects.
     '''
-    return  list(self.tables.keys())
+    return  list(self.objects.keys())
     
 
 

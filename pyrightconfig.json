@@ -1,0 +1,11 @@
+{
+  "include": ["src", "tests"],
+  "pythonVersion": "3.12",
+  "executionEnvironments": [
+    {
+      "root": "src"
+    }
+  ],
+  "extraPaths": ["src"],
+  "reportMissingImports": false
+}

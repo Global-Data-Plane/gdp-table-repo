@@ -62,7 +62,7 @@ def upload_table(user, name):
    
   manager = current_app.table_manager  # type: ignore[attr-defined]
   key = f'{owner}/{valid_name}'
-  manager.publish_table(key, owner, sdml)
+  manager.publish_table(key, sdml)
   return jsonify(key)
 
 @repo_bp.route('/table', methods=['GET'])

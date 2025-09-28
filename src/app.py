@@ -2,8 +2,8 @@ from flask import Flask
 import logging
 import os
 import sys
-from src import permissions, gdp_storage
-from src.config import GOOGLE_PROJECT, GDP_PERMISSIONS_DATABASE, GDP_PERMISSIONS_TABLE, BUCKET_NAME, STORAGE_ENVIRONMENT, DATABASE_ENVIRONMENT,  SQLITE_DATABASE_PATH, FLASK_SECRET_KEY, FLASK_JINJA_TEMPLATE_DIR, FLASK_STATIC_ASSET_DIR, FLASK_STATIC_URL
+import src.gdp_storage
+from src.config import  BUCKET_NAME, STORAGE_ENVIRONMENT, FLASK_SECRET_KEY, FLASK_JINJA_TEMPLATE_DIR, FLASK_STATIC_ASSET_DIR, FLASK_STATIC_URL
 from src.gdp_table_manager import GDPTableManager
 from src.routes.sdtp_routes import sdtp_bp
 from src.routes.repo import repo_bp
@@ -11,24 +11,13 @@ from src.routes.ui import ui_bp
 from src.routes.debug import debug_bp
 from src.auth_helpers import auth_bp
 
-def _create_managers():
-  result = {}
+def _create_storage_manager():
   if STORAGE_ENVIRONMENT == 'Google':
-    result["storage_manager"] = gdp_storage.GDPGoogleStorageManager(BUCKET_NAME)
+    return src.gdp_storage.GDPGoogleStorageManager(BUCKET_NAME)
   else:
-    result["storage_manager"] =  gdp_storage.InMemoryStorageManager()
-  if DATABASE_ENVIRONMENT == 'Google':
-    result["permissions_manager"] = permissions.DatastoreManager(GOOGLE_PROJECT, GDP_PERMISSIONS_DATABASE, GDP_PERMISSIONS_TABLE)
-  elif DATABASE_ENVIRONMENT == 'SQLite':
-    result["permissions_manager"] = permissions.SQLitePermissionManager(SQLITE_DATABASE_PATH)
-  elif DATABASE_ENVIRONMENT == 'BUCKET':
-    result["permissions_manager"] = permissions.CachedBucketPermissionManager(BUCKET_NAME)
-  else: 
-    result["permissions_manager"] =  permissions.InMemoryPermissionsManager()
-  return result
-    
-      
+    return  src.gdp_storage.InMemoryStorageManager()
 
+    
 def create_app():
   app = Flask(
     __name__,
@@ -37,7 +26,6 @@ def create_app():
     static_url_path=FLASK_STATIC_URL
   )
 
-  managers = _create_managers()
 
   if app.logger.hasHandlers():
     app.logger.handlers.clear()
@@ -50,7 +38,7 @@ def create_app():
   handler.setFormatter(formatter)
   app.logger.addHandler(handler)
   app.logger.setLevel(logging.DEBUG)
-  app.table_manager = GDPTableManager(managers["storage_manager"], managers["permissions_manager"])  # type: ignore[attr-defined]
+  app.table_manager = GDPTableManager(_create_storage_manager())  # type: ignore[attr-defined]
   app.register_blueprint(sdtp_bp)
   app.register_blueprint(repo_bp)
   app.register_blueprint(ui_bp)

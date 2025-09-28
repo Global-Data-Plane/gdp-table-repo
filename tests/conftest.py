@@ -4,6 +4,7 @@ import sys
 
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+print(sys.path)
 
 import types
 import pytest
@@ -37,6 +38,9 @@ fake_auth_helpers._get_email = _get_email        # type: ignore[attr-defined]
 
 # Register with the correct full module name
 sys.modules["src.auth_helpers"] = fake_auth_helpers
+from flask import Blueprint
+fake_auth_helpers.auth_bp = Blueprint("dummy", __name__) # type: ignore
+
 
 from src.app import create_app
 from flask import current_app
@@ -79,7 +83,7 @@ tables = {
 # --- Shared table setup function ---
 def setup_tables(manager):
     for (name, table_desc) in tables.items():
-        manager.publish_table(name, table_desc["owner"], table_desc["table"])
+        manager.publish_table(name, table_desc["table"])
     manager.update_access("aiko@ai/table_1.sdml", "aiko@ai", ["PUBLIC"])
     manager.update_access("aiko@ai/table_2.sdml",  "aiko@ai", ["rick@ai"])
     manager.update_access("rick@ai/table_3.sdml",  "rick@ai", ["HUB"])

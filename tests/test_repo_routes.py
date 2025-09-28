@@ -3,10 +3,7 @@
 from helpers import run_and_check_result, run_and_check_post_result
 from flask import current_app
 
-def _check_consistency():
-   errors = current_app.table_manager.consistency_errors() # type: ignore[attr-defined]
-   for dictionary, keys in errors.items():
-      assert len(keys) == 0, f'missing tables {keys} in {dictionary}'
+
 
 def test_upload(client, tables_setup):
   table = {
@@ -24,13 +21,11 @@ def test_upload(client, tables_setup):
   resp = client.get('/services/gdp/tables', headers = {"Authorization": "userB"})
   table_keys = resp.get_json()
   assert 'rick@ai/foo.sdml'  in table_keys
-  _check_consistency()
   resp = client.post("/services/gdp/upload/foo", headers = {"Authorization": "userC"}, json={"table": table})
   assert resp.status_code == 200
   resp = client.get('/services/gdp/tables', headers = {"Authorization": "userC"})
   table_keys = resp.get_json()
   assert 'matt@ai/foo.sdml' in table_keys
-  _check_consistency()
 
 def test_download(client, tables_setup):
   table_1 = {
@@ -66,7 +61,7 @@ def test_delete_table_success(client, tables_setup):
   assert response.json['deleted'] == 'aiko@ai/table_2.sdml'
   manager = current_app.table_manager # type: ignore[attr-defined]
   assert 'aiko@ai/table_2.sdml' not in manager.list_tables() 
-  _check_consistency()
+
 
 
 def test_delete_table_user_none(client, tables_setup):

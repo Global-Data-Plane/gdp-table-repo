@@ -1,13 +1,11 @@
 import os
 
-HUB_API_URL = os.environ.get('JUPYTERHUB_API_URL','')
+HUB_API_URL = os.environ.get('JUPYTERHUB_API_URL',' ')
 SERVICE_API_TOKEN = os.environ.get('GDP_SERVICE_API_TOKEN','foo')
-HUB_URL = os.environ.get('JUPYTERHUB_URL','')
+HUB_URL = os.environ.get('JUPYTERHUB_URL',' ')
 GDP_CLIENT_ID = os.environ.get('GDP_CLIENT_ID','bar')
 OAUTH_CALLBACK_URL = '/services/gdp/callback'
 GDP_ROOT_URL = os.environ.get('GDP_ROOT_URL','')
-GDP_PERMISSIONS_DATABASE = os.environ.get('GDP_PERMISSIONS_DATABASE','')
-GDP_PERMISSIONS_TABLE = os.environ.get('GDP_PERMISSIONS_TABLE','TablePermissions')
 GOOGLE_PROJECT = os.environ.get('GOOGLE_PROJECT','')
 BUCKET_NAME = os.environ.get('BUCKET_NAME','')
 JUPYTER_HUB_API_TOKEN = os.environ.get('JUPYTER_HUB_API_TOKEN','')
@@ -17,8 +15,6 @@ GOOGLE_APPLICATION_CREDENTIALS = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
 #     print('Error!  GOOGLE_APPLICATION_CREDENTIALS is not set or does not exist')
 #     exit(1)
 STORAGE_ENVIRONMENT = os.getenv("STORAGE_ENVIRONMENT", "MEMORY")
-DATABASE_ENVIRONMENT = os.getenv("DATABASE_ENVIRONMENT", "MEMORY")
-SQLITE_DATABASE_PATH = os.getenv("SQLITE_DATABASE_PATH", "/var/data/db.sql")
 #--- Flask Settings ----
 FLASK_SECRET_KEY = os.environ.get('FLASK_SECRET_KEY', 'super-secret-key')
 

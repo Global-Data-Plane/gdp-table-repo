@@ -46,6 +46,6 @@ def init(user):
   }
   manager = current_app.table_manager # type: ignore[attr-defined]
   for (key, desc) in tables.items():
-    manager.publish_table(key, desc["owner"], desc["table"])
-    manager.update_access(key, desc["owner"], desc["shares"])
+    manager.publish_table(key,  desc["table"])
+    manager.update_access(key,  desc["shares"])
   return redirect('/services/gdp/ui/view_tables')

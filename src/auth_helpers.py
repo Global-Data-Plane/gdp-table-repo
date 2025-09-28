@@ -12,6 +12,7 @@ from functools import wraps
 from flask import request, make_response, session, redirect, Blueprint
 from src.config import HUB_API_URL, HUB_URL, OAUTH_CALLBACK_URL, SERVICE_API_TOKEN, GDP_CLIENT_ID
 from jupyterhub.services.auth import HubOAuth, HubAuth
+auth_bp = Blueprint('auth', __name__)
 
 print(f"[DEBUG] HUB_URL: {HUB_URL}")
 print(f"[DEBUG] OAUTH_CALLBACK_URL: {OAUTH_CALLBACK_URL}")
@@ -79,7 +80,7 @@ def oauth_ok():
 
 # ... (env var and HubOAuth logic as above) ...
 
-auth_bp = Blueprint('auth', __name__)
+
 
 CALLBACK_PATH = urlparse(CALLBACK_URI).path
 

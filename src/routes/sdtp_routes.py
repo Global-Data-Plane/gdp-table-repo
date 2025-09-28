@@ -66,8 +66,12 @@ def _get_table_for_query(parameters, user, route):
 @authenticated
 def get_table_schema(user):
 # Query: ?table=... or body JSON {"table": ...}
-  (parms, table) = _get_table_for_query({'table'}, user, '/get_table_schema')
-  return jsonify(table.schema)
+  try:
+    (parms, table) = _get_table_for_query({'table'}, user, '/get_table_schema')
+    return jsonify(table.schema)
+  except GDPNotFoundException as e:
+    abort(404, e)
+
 
 def _column_query_result(result):
   return Response(
@@ -86,7 +90,8 @@ def get_range_spec(user):
     result = (table.range_spec(column))
     return _column_query_result(result)
   except InvalidDataException as e:
-     abort(400, f'{column} is not a valid column of table {parms["table"]}')
+    
+    abort(400, f'{column} is not a valid column of table {parms["table"]}') #type: ignore
 
 
 
@@ -99,7 +104,7 @@ def get_all_values(user):
     column = parms['column']
     return _column_query_result(table.all_values(column))
   except InvalidDataException as e:
-    abort(400, f'{column} is not a valid column of table {parms["table"]}')
+    abort(400, f'{column} is not a valid column of table {parms["table"]}') #type: ignore
 
 @sdtp_bp.route('/get_column', methods=['GET'])
 @authenticated
@@ -110,7 +115,7 @@ def get_column(user):
     column = parms['column']
     return _column_query_result(table.get_column(column))
   except InvalidDataException as e:
-     abort(400, f'{column} is not a valid column of table {parms["table"]}')
+     abort(400, f'{column} is not a valid column of table {parms["table"]}') #type: ignore
 
 def _check_and_return_json_parameters(parameters, route):
     result = request.get_json(silent=True) or {}

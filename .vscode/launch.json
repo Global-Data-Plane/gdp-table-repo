@@ -22,6 +22,19 @@
       ],
       "jinja": true,
       "autoStartBrowser": false
-    }
+    },
+    {
+      "name": "Python: pytest",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": [
+        "tests/test_sdtp_routes.py",   // or your test file
+        "-k", "test_name_pattern"      // (optional) only tests matching pattern
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": false
+    } 
+
   ]
 }
