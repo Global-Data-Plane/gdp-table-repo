@@ -11,6 +11,8 @@ BUCKET_NAME = os.environ.get('BUCKET_NAME','')
 JUPYTER_HUB_API_TOKEN = os.environ.get('JUPYTER_HUB_API_TOKEN','')
 GDP_HOST = os.environ.get("GDP_HOST", "http://localhost")
 GOOGLE_APPLICATION_CREDENTIALS = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+AZURE_STORAGE_CONNECTION_STRING = os.getenv('AZURE_STORAGE_CONNECTION_STRING', ' ')
+CONTAINER_NAME = os.getenv('CONTAINER_NAME', ' ')
 # if GOOGLE_APPLICATION_CREDENTIALS is None or not os.path.exists(GOOGLE_APPLICATION_CREDENTIALS):
 #     print('Error!  GOOGLE_APPLICATION_CREDENTIALS is not set or does not exist')
 #     exit(1)

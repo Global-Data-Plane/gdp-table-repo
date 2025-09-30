@@ -3,7 +3,7 @@ import logging
 import os
 import sys
 import src.gdp_storage
-from src.config import  BUCKET_NAME, STORAGE_ENVIRONMENT, FLASK_SECRET_KEY, FLASK_JINJA_TEMPLATE_DIR, FLASK_STATIC_ASSET_DIR, FLASK_STATIC_URL
+from src.config import  BUCKET_NAME, STORAGE_ENVIRONMENT, FLASK_SECRET_KEY, FLASK_JINJA_TEMPLATE_DIR, FLASK_STATIC_ASSET_DIR, FLASK_STATIC_URL, CONTAINER_NAME, AZURE_STORAGE_CONNECTION_STRING
 from src.gdp_table_manager import GDPTableManager
 from src.routes.sdtp_routes import sdtp_bp
 from src.routes.repo import repo_bp
@@ -14,6 +14,8 @@ from src.auth_helpers import auth_bp
 def _create_storage_manager():
   if STORAGE_ENVIRONMENT == 'Google':
     return src.gdp_storage.GDPGoogleStorageManager(BUCKET_NAME)
+  elif STORAGE_ENVIRONMENT == 'Azure':
+    return src.gdp_storage.GDPAzureStorageManager(CONTAINER_NAME, AZURE_STORAGE_CONNECTION_STRING)
   else:
     return  src.gdp_storage.InMemoryStorageManager()
 

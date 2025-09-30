@@ -242,4 +242,82 @@ class InMemoryStorageManager(GDPStorageManager):
     return  list(self.objects.keys())
     
 
+from azure.storage.blob import BlobServiceClient
 
+class GDPAzureStorageManager(GDPStorageManager):
+  '''
+  Abstract class for storing SDML Tables.  A concrete implementation
+  instantiates a StorageManager to read and write SDML Tables as dictionaries
+  '''
+
+  def __init__(self, container_name: str, connection_string: str):
+    self.container_name = container_name
+    self.client = BlobServiceClient.from_connection_string(connection_string)
+    self.container = self.client.get_container_client(container_name)
+
+
+ 
+  def key_exists(self, key: str) -> bool:
+    '''
+    Returns true iff an object exists under key key
+    '''
+    blob = self.container.get_blob_client(key)
+    return blob.exists()
+
+  
+  def get_meta(self, key: str) -> Optional[ObjectMeta]:
+    '''
+    Reads the metadata of the object at the specified key (path).
+    Returns an ObjectMeta or  None if not found.
+    '''
+    blob = self.container.get_blob_client(key)
+    if not blob.exists():
+      return None
+    props = blob.get_blob_properties()
+    return ObjectMeta(
+      etag=props['etag'],
+      last_modified=props['last_modified'],
+      size=props['size'],
+      content_type=props.get('content_settings', {}).get('content_type', None), # type: ignore
+      version_id=props.get('version_id', None)
+    )
+
+  def get_object(self, key:str) -> Optional[Any]:
+    '''
+    Reads the object at the specified key (path).
+    Returns the parsed JSON object, an SDML Table or None if not found.
+    '''
+    blob = self.container.get_blob_client(key)
+    if not blob.exists():
+      return None
+    stream = blob.download_blob()
+    data = stream.readall().decode('utf-8')
+    try:
+      return json.loads(data)
+    except Exception:
+      return data
+
+  def put_object(self, key: str, object_data: Dict) -> None:
+    '''
+    Stores the given object_data  as JSON under key.
+    '''
+    blob = self.container.get_blob_client(key)
+    if isinstance(object_data, str):
+      blob.upload_blob(object_data, overwrite=True)
+    else:
+      blob.upload_blob(json.dumps(object_data), overwrite=True)
+ 
+  def delete_object(self, key: str) -> None:
+    '''
+    Deletes  the object stored under  key.
+    '''
+    blob = self.container.get_blob_client(key)
+    blob.delete_blob()
+
+  def _all_keys(self):
+    '''
+    Return all the keys of stored objects
+    '''
+    return [b.name for b in self.container.list_blobs()]
+ 
+  
