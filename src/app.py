@@ -3,7 +3,7 @@ import logging
 import os
 import sys
 import src.gdp_storage
-from src.config import  BUCKET_NAME, STORAGE_ENVIRONMENT, FLASK_SECRET_KEY, FLASK_JINJA_TEMPLATE_DIR, FLASK_STATIC_ASSET_DIR, FLASK_STATIC_URL, CONTAINER_NAME, AZURE_STORAGE_CONNECTION_STRING
+from src.config import  BUCKET_NAME, STORAGE_ENVIRONMENT, FLASK_SECRET_KEY, FLASK_JINJA_TEMPLATE_DIR, FLASK_STATIC_ASSET_DIR, FLASK_STATIC_URL
 from src.gdp_table_manager import GDPTableManager
 from src.routes.sdtp_routes import sdtp_bp
 from src.routes.repo import repo_bp
@@ -14,10 +14,12 @@ from src.auth_helpers import auth_bp
 def _create_storage_manager():
   if STORAGE_ENVIRONMENT == 'Google':
     return src.gdp_storage.GDPGoogleStorageManager(BUCKET_NAME)
-  elif STORAGE_ENVIRONMENT == 'Azure':
-    return src.gdp_storage.GDPAzureStorageManager(CONTAINER_NAME, AZURE_STORAGE_CONNECTION_STRING)
-  else:
-    return  src.gdp_storage.InMemoryStorageManager()
+  # Anything else (including unset) is in-memory and loses all tables on
+  # restart - say so loudly, since a misspelled or missing STORAGE_ENVIRONMENT
+  # (e.g. CLOUD_ENVIRONMENT) otherwise fails silently.
+  print(f"WARNING: STORAGE_ENVIRONMENT={STORAGE_ENVIRONMENT!r}: using IN-MEMORY storage; "
+        "tables will not survive a restart. Set STORAGE_ENVIRONMENT=Google for GCS.", flush=True)
+  return src.gdp_storage.InMemoryStorageManager()
 
     
 def create_app():
